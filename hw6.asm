@@ -2,7 +2,11 @@ section .text
 global start               ; for linker
 
 start:                     ; label
-call getInput
+
+push helloMessage           ; First Param
+push helloMessageSize       ; Second Parameter
+call writeMessage
+
 call getInput
 jmp exit
 
@@ -17,8 +21,8 @@ ret
 writeMessage:
 mov eax, 4                  ; syscall #4 - write
 mov ebx, 1                  ; std out
-pop ecx                     ; buffer out
-pop edx                     ; buffer size
+mov ecx, [esp+8]            ; buffer = first parameter
+mov edx, [esp+4]            ; size = second parameter
 int 0x80                    ; invoke dispatcher
 ret
 
@@ -30,6 +34,8 @@ int 0x80                    ; invoke dispatcher
 ;;; Variables
 section .data
 BUFFER_SIZE: equ 1024    ; declare constant
+helloMessage: db "Enter a sequence of redundant characters and the hampsters will run length encode them", 10, ">> "
+helloMessageSize: equ $ - helloMessage
 
 section .bss
 inputBuffer: resb BUFFER_SIZE   ; declare inputBuffer of SIZE bytes
