@@ -3,9 +3,11 @@ global start               ; for linker
 
 start:                     ; label
 
+pushad                      ; Save registers
 push helloMessage           ; First Param
 push helloMessageSize       ; Second Parameter
-call writeMessage
+call writeMessage           ; Call function
+popad                       ; cleanup
 
 call getInput
 jmp exit
