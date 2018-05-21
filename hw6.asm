@@ -1,22 +1,71 @@
 section .text
-global start               ; for linker
+global start                    ; for linker
 
-start:                     ; label
+start:                          ; label
 
-pushad                      ; Save registers
-push helloMessage           ; First Param
-push helloMessageSize       ; Second Parameter
-call writeMessage           ; Call function
-popad                       ; cleanup
+push helloMessage               ; First Param
+push helloMessageSize           ; Second Parameter
+call writeMessage               ; Call function
 
+push inputBuffer
+push BUFFER_SIZE
 call getInput
-jmp exit
+
+jmp repeatSetup
+
+
+jmp exit                        ; Nice safty
+
+
+;;;;; Meat ;;;;;;;;;;;;;;;
+;;; eax     = i
+;;; ebx     = keyCount
+;;; ecx     = count
+;;; dl      = current character
+;;; dh      = lastChar
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; clear and establish "variables"/registers
+repeatSetup:
+xor eax, eax
+xor ebx, ebx
+xor ecx, ecx
+
+repeat:
+mov dl, [inputBuffer + eax]     ; current char = next char
+inc eax                         ; i++
+cmp dl, 0xa                     ; if current char == EOL; end of line character
+je writeEncoded                 ;   true ==> writeEncoded
+
+; if count == 0
+cmp ecx, 0                      ; count == 0
+jne isCurrentChar               ;   false ==> isCurrentChar
+mov dh, dl                      ; last char = current char
+mov [stringBuilder + ebx], dl   ; string builder[keyCount] += current char
+inc ebx                         ; keyCount ++
+inc ecx                         ; count ++
+jmp repeat                        ; repeat
+
+; if last char == current char 
+isCurrentChar:
+cmp dh, dl                      ; last char == current char
+jne appendCount                 ;   false ==> appendCount
+inc ecx                         ; count ++
+jmp repeat                        ; repeat
+
+; else
+appendCount:
+mov [stringBuilder + ebx + 1], ecx  ; string builder += count
+xor ecx, ecx                        ; count = 0
+
+
+;;;;; "Functions" n Stuff ;;;;;
 
 getInput:
 mov eax, 3                  ; syscall 3 - read
 mov ebx, 0                  ; std in
-mov ecx, inputBuffer        ; buffer to read into
-mov edx, BUFFER_SIZE        ; number of bytes to read
+mov ecx, [esp+8]            ; first param; buffer to read into
+mov edx, [esp+4]            ; second para; number of bytes to read
 int 0x80                    ; invoke dispatcher
 ret
 
@@ -28,6 +77,12 @@ mov edx, [esp+4]            ; size = second parameter
 int 0x80                    ; invoke dispatcher
 ret
 
+writeEncoded:
+push stringBuilder          ; stringBuilder
+push ecx                    ; count
+call writeMessage
+jmp exit
+
 exit:
 mov eax, 1                  ; syscall #1 - Exit?
 mov ebx, 0                  ; exit code? 0
@@ -35,9 +90,10 @@ int 0x80                    ; invoke dispatcher
 
 ;;; Variables
 section .data
-BUFFER_SIZE: equ 1024    ; declare constant
+BUFFER_SIZE: equ 1024       ; declare constant
 helloMessage: db "Enter a sequence of redundant characters and the hampsters will run length encode them", 10, ">> "
 helloMessageSize: equ $ - helloMessage
 
 section .bss
-inputBuffer: resb BUFFER_SIZE   ; declare inputBuffer of SIZE bytes
+inputBuffer: resb BUFFER_SIZE   ; declare inputBuffer of BUFFER_SIZE bytes
+stringBuilder: resb BUFFER_SIZE ; decalre stringBuilder of BUFFER_SIZE bytes
