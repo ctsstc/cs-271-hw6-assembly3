@@ -11,7 +11,7 @@ push inputBuffer
 push BUFFER_SIZE
 call getInput
 
-jmp repeatSetup
+jmp setupRepeat
 
 
 jmp exit                        ; Nice safty
@@ -26,7 +26,7 @@ jmp exit                        ; Nice safty
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; clear and establish "variables"/registers
-repeatSetup:
+setupRepeat:
 xor eax, eax
 xor ebx, ebx
 xor ecx, ecx
@@ -35,7 +35,7 @@ repeat:
 mov dl, [inputBuffer + eax]     ; current char = next char
 inc eax                         ; i++
 cmp dl, 0xa                     ; if current char == EOL; end of line character
-je writeEncoded                 ;   true ==> writeEncoded
+je wrapUp                       ;   true ==> wrapUp
 
 ; if count == 0
 cmp ecx, 0                          ; count == 0
@@ -48,15 +48,15 @@ jmp repeat                          ; repeat
 
 ; if last char == current char 
 isCurrentChar:
+inc ecx                         ; count ++
 cmp dh, dl                      ; last char == current char
 jne appendCount                 ;   false ==> appendCount
-inc ecx                         ; count ++
 jmp repeat                      ; repeat
 
 ; else
 appendCount:
 add ecx, '0'                            ; count to string
-mov [stringBuilder + ebx * 2 + 1], ecx  ; string builder[keyCount * 2 + 1] += count
+mov [stringBuilder + ebx * 2 - 1], ecx  ; string builder[keyCount * 2 - 1] += count
 xor ecx, ecx                            ; count = 0
 jmp repeat                              ; repeat
 
@@ -78,9 +78,19 @@ mov edx, [esp+4]            ; size = second parameter
 int 0x80                    ; invoke dispatcher
 ret
 
+; Concat last count to string builder
+wrapUp:
+inc ecx
+add ecx, '0'                            ; count to string
+mov [stringBuilder + ebx * 2 - 1], ecx  ; string builder[keyCount * 2 - 1] += count
+mov ecx, 0xa                            ; New Line Character
+mov [stringBuilder + ebx * 2], ecx      ; string builder += EOL Character
+
+
 writeEncoded:
 push stringBuilder          ; push stringBuilder pointer
 sal ebx, 1                  ; key count *= 2
+inc ebx                     ; string builder length + 1 (for EOL character)
 push ebx                    ; push string Builder Length
 call writeMessage
 jmp exit
