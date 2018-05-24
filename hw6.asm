@@ -38,26 +38,27 @@ cmp dl, 0xa                     ; if current char == EOL; end of line character
 je writeEncoded                 ;   true ==> writeEncoded
 
 ; if count == 0
-cmp ecx, 0                      ; count == 0
-jne isCurrentChar               ;   false ==> isCurrentChar
-mov dh, dl                      ; last char = current char
-mov [stringBuilder + ebx], dl   ; string builder[keyCount] += current char
-inc ebx                         ; keyCount ++
-inc ecx                         ; count ++
-jmp repeat                      ; repeat
+cmp ecx, 0                          ; count == 0
+jne isCurrentChar                   ;   false ==> isCurrentChar
+mov dh, dl                          ; last char = current char
+mov [stringBuilder + ebx * 2], dl   ; string builder[keyCount * 2] += current char
+inc ebx                             ; keyCount ++
+inc ecx                             ; count ++
+jmp repeat                          ; repeat
 
 ; if last char == current char 
 isCurrentChar:
 cmp dh, dl                      ; last char == current char
 jne appendCount                 ;   false ==> appendCount
 inc ecx                         ; count ++
-jmp repeat                        ; repeat
+jmp repeat                      ; repeat
 
 ; else
 appendCount:
-mov [stringBuilder + ebx + 1], ecx  ; string builder += count
-xor ecx, ecx                        ; count = 0
-jmp repeat                          ; repeat
+add ecx, '0'                            ; count to string
+mov [stringBuilder + ebx * 2 + 1], ecx  ; string builder[keyCount * 2 + 1] += count
+xor ecx, ecx                            ; count = 0
+jmp repeat                              ; repeat
 
 ;;;;; "Functions" n Stuff ;;;;;
 
@@ -78,8 +79,9 @@ int 0x80                    ; invoke dispatcher
 ret
 
 writeEncoded:
-push stringBuilder          ; stringBuilder
-push ecx                    ; count
+push stringBuilder          ; push stringBuilder pointer
+sal ebx, 1                  ; key count *= 2
+push ebx                    ; push string Builder Length
 call writeMessage
 jmp exit
 
