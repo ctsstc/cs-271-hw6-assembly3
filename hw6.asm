@@ -44,7 +44,7 @@ mov dh, dl                      ; last char = current char
 mov [stringBuilder + ebx], dl   ; string builder[keyCount] += current char
 inc ebx                         ; keyCount ++
 inc ecx                         ; count ++
-jmp repeat                        ; repeat
+jmp repeat                      ; repeat
 
 ; if last char == current char 
 isCurrentChar:
@@ -57,7 +57,7 @@ jmp repeat                        ; repeat
 appendCount:
 mov [stringBuilder + ebx + 1], ecx  ; string builder += count
 xor ecx, ecx                        ; count = 0
-
+jmp repeat                          ; repeat
 
 ;;;;; "Functions" n Stuff ;;;;;
 

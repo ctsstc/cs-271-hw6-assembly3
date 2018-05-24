@@ -1,0 +1,21 @@
+%macro writeMessage 2
+
+mov eax, 4          ; syscall #4 - write
+mov ebx, 1          ; std out
+mov ecx, %1         ; buffer = first parameter
+mov edx, %2         ; size = second parameter
+int 0x80            ; invoke dispatcher
+ret
+
+%endmacro
+
+%macro readMessage 2
+
+mov eax, 3          ; syscall 3 - read
+mov ebx, 0          ; std in
+mov ecx, %1         ; first param; buffer to read into
+mov edx, %2         ; second para; number of bytes to read
+int 0x80            ; invoke dispatcher
+ret
+
+%endmacro
