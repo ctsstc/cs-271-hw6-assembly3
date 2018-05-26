@@ -1,20 +1,17 @@
-all: hw6
+all: encoder decoder
 
-hw6.o: hw6.asm
-	nasm -f elf32 -g -F stabs hw6.asm
+encoder.o: encoder.asm
+	nasm -f elf32 -g -F stabs encoder.asm
 	
-hw6: hw6.o
-	ld -e start -m elf_i386 -o hw6 hw6.o
+encoder: encoder.o
+	ld -e start -m elf_i386 -o encoder encoder.o
 
-
-rebuild: b
-
-a: hw6.asm
-	nasm -f elf32 -g -F stabs hw6.asm
+decoder.o: decoder.asm
+	nasm -f elf32 -g -F stabs decoder.asm
 	
-b: a
-	ld -e start -m elf_i386 -o hw6 hw6.o
+decoder: decoder.o
+	ld -e start -m elf_i386 -o decoder decoder.o
 
 
 clean:
-	rm *.o hw6
+	rm *.o encoder decoder
