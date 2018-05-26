@@ -61,6 +61,26 @@ inc ebx                                 ; keyCount ++
 mov dh, dl                              ; last char = current char
 jmp repeat                              ; repeat
 
+; Concat last count to string builder
+wrapUp:
+add ecx, '0'                            ; count to string
+mov [stringBuilder + ebx * 2 - 1], ecx  ; string builder[keyCount * 2 - 1] += count
+mov ecx, 0xa                            ; New Line Character
+mov [stringBuilder + ebx * 2], ecx      ; string builder += EOL Character
+
+writeEncoded:
+push stringBuilder          ; push stringBuilder pointer
+sal ebx, 1                  ; key count *= 2
+inc ebx                     ; string builder length + 1 (for EOL character)
+push ebx                    ; push string Builder Length
+call writeMessage
+jmp exit
+
+exit:
+mov eax, 1                  ; syscall #1 - Exit?
+mov ebx, 0                  ; exit code? 0
+int 0x80                    ; invoke dispatcher
+
 ;;;;; "Functions" n Stuff ;;;;;
 
 getInput:
@@ -78,27 +98,6 @@ mov ecx, [esp+8]            ; buffer = first parameter
 mov edx, [esp+4]            ; size = second parameter
 int 0x80                    ; invoke dispatcher
 ret
-
-; Concat last count to string builder
-wrapUp:
-add ecx, '0'                            ; count to string
-mov [stringBuilder + ebx * 2 - 1], ecx  ; string builder[keyCount * 2 - 1] += count
-mov ecx, 0xa                            ; New Line Character
-mov [stringBuilder + ebx * 2], ecx      ; string builder += EOL Character
-
-
-writeEncoded:
-push stringBuilder          ; push stringBuilder pointer
-sal ebx, 1                  ; key count *= 2
-inc ebx                     ; string builder length + 1 (for EOL character)
-push ebx                    ; push string Builder Length
-call writeMessage
-jmp exit
-
-exit:
-mov eax, 1                  ; syscall #1 - Exit?
-mov ebx, 0                  ; exit code? 0
-int 0x80                    ; invoke dispatcher
 
 ;;; Variables
 section .data
