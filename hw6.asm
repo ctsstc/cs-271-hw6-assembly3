@@ -27,6 +27,7 @@ setupRepeat:
 xor eax, eax
 xor ebx, ebx
 xor ecx, ecx
+xor edx, edx
 
 repeat:
 mov dl, [inputBuffer + eax]     ; current char = inputBuffer[i]
@@ -44,20 +45,21 @@ jmp repeat                      ; repeat
 
 ; else
 newCharacter:
-mov [stringBuilder + ebx * 2], dl       ; string builder[keyCount * 2] += current char
-inc ebx                                 ; keyCount ++
-mov dh, dl                              ; last char = current char
 
 ; if i == 1
 cmp eax, 1                      ; if i  == 1; first character
-je repeat                       ;   true ==> repeat
+je addCharacter                 ;   true ==> addCharacter; skip count concat
 
 ; Concatenate Count
-dec ecx
 add ecx, '0'                                ; count to string
 mov [stringBuilder + (ebx-1) * 2 + 1], ecx  ; string builder[(keyCount-1) * 2 - 1] += count
-xor ecx, ecx                                ; count = 0
-jmp repeat                                  ; repeat
+
+addCharacter:
+mov [stringBuilder + ebx * 2], dl       ; string builder[keyCount * 2] += current char
+xor ecx, ecx                            ; count = 0
+inc ebx                                 ; keyCount ++
+mov dh, dl                              ; last char = current char
+jmp repeat                              ; repeat
 
 ;;;;; "Functions" n Stuff ;;;;;
 
