@@ -14,9 +14,6 @@ call getInput
 jmp setupRepeat
 
 
-jmp exit                        ; Nice safty
-
-
 ;;;;; Meat ;;;;;;;;;;;;;;;
 ;;; eax     = i
 ;;; ebx     = keyCount
@@ -32,31 +29,32 @@ xor ebx, ebx
 xor ecx, ecx
 
 repeat:
-mov dl, [inputBuffer + eax]     ; current char = next char
+mov dl, [inputBuffer + eax]     ; current char = inputBuffer[i]
 inc eax                         ; i++
 cmp dl, 0xa                     ; if current char == EOL; end of line character
 je wrapUp                       ;   true ==> wrapUp
 
 ; if count == 0
-cmp ecx, 0                          ; count == 0
-jne isCurrentChar                   ;   false ==> isCurrentChar
-mov dh, dl                          ; last char = current char
-mov [stringBuilder + ebx * 2], dl   ; string builder[keyCount * 2] += current char
-inc ebx                             ; keyCount ++
-inc ecx                             ; count ++
-jmp repeat                          ; repeat
+cmp ecx, 0                              ; count == 0
+jne isCurrentChar                       ;   false ==> isCurrentChar
+mov dh, dl                              ; last char = current char
+inc ebx                                 ; keyCount ++
+inc ecx                                 ; count ++
+jmp repeat                              ; repeat
 
 ; if last char == current char 
 isCurrentChar:
-inc ecx                         ; count ++
 cmp dh, dl                      ; last char == current char
-jne appendCount                 ;   false ==> appendCount
+jne appendCountAndCharacter     ;   false ==> appendCountAndCharacter
+inc ecx                         ; count ++
+
 jmp repeat                      ; repeat
 
 ; else
-appendCount:
+appendCountAndCharacter:
 add ecx, '0'                            ; count to string
 mov [stringBuilder + ebx * 2 - 1], ecx  ; string builder[keyCount * 2 - 1] += count
+mov [stringBuilder + (ebx-1) * 2], dl   ; string builder[(keyCount-1) * 2] += current char
 xor ecx, ecx                            ; count = 0
 jmp repeat                              ; repeat
 
@@ -80,7 +78,6 @@ ret
 
 ; Concat last count to string builder
 wrapUp:
-inc ecx
 add ecx, '0'                            ; count to string
 mov [stringBuilder + ebx * 2 - 1], ecx  ; string builder[keyCount * 2 - 1] += count
 mov ecx, 0xa                            ; New Line Character
