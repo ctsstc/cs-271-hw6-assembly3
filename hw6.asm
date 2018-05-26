@@ -31,32 +31,33 @@ xor ecx, ecx
 repeat:
 mov dl, [inputBuffer + eax]     ; current char = inputBuffer[i]
 inc eax                         ; i++
+inc ecx                         ; count ++
+
+; if current char == EOL
 cmp dl, 0xa                     ; if current char == EOL; end of line character
 je wrapUp                       ;   true ==> wrapUp
 
-; if count == 0
-cmp ecx, 0                              ; count == 0
-jne isCurrentChar                       ;   false ==> isCurrentChar
-mov dh, dl                              ; last char = current char
-inc ebx                                 ; keyCount ++
-inc ecx                                 ; count ++
-jmp repeat                              ; repeat
-
 ; if last char == current char 
-isCurrentChar:
 cmp dh, dl                      ; last char == current char
-jne appendCountAndCharacter     ;   false ==> appendCountAndCharacter
-inc ecx                         ; count ++
-
+jne newCharacter                ;   false ==> newCharacter
 jmp repeat                      ; repeat
 
 ; else
-appendCountAndCharacter:
-add ecx, '0'                            ; count to string
-mov [stringBuilder + ebx * 2 - 1], ecx  ; string builder[keyCount * 2 - 1] += count
-mov [stringBuilder + (ebx-1) * 2], dl   ; string builder[(keyCount-1) * 2] += current char
-xor ecx, ecx                            ; count = 0
-jmp repeat                              ; repeat
+newCharacter:
+mov [stringBuilder + ebx * 2], dl       ; string builder[keyCount * 2] += current char
+inc ebx                                 ; keyCount ++
+mov dh, dl                              ; last char = current char
+
+; if i == 1
+cmp eax, 1                      ; if i  == 1; first character
+je repeat                       ;   true ==> repeat
+
+; Concatenate Count
+dec ecx
+add ecx, '0'                                ; count to string
+mov [stringBuilder + (ebx-1) * 2 + 1], ecx  ; string builder[(keyCount-1) * 2 - 1] += count
+xor ecx, ecx                                ; count = 0
+jmp repeat                                  ; repeat
 
 ;;;;; "Functions" n Stuff ;;;;;
 
