@@ -32,3 +32,6 @@ kdbg hw6
 
 - https://www.tutorialspoint.com/assembly_programming/assembly_variables.htm
 - https://www.tutorialspoint.com/assembly_programming/assembly_arithmetic_instructions.htm
+- http://unixwiz.net/techtips/x86-jumps.html
+- https://en.wikibooks.org/wiki/X86_Assembly/Control_Flow#Jump_if_Not_Equal
+- https://idea.popcount.org/2013-07-16-baby-steps-in-x86-assembly/
